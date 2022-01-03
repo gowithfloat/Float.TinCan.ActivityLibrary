@@ -191,7 +191,7 @@ namespace Float.TinCan.ActivityLibrary
                 .SetActivityId(Activity.TinCanActivityId)
                 .SetActivityType(Activity.TinCanActivityType)
                 .SetActivityName(Activity.Name)
-                .SetGroupContext(Activity.ActivityGroup?.Name, Activity.ActivityGroup?.TinCanActivityId?.OriginalString, Activity.ActivityGroup?.TinCanActivityType)
+                .SetGroupContext(Activity.ActivityGroup?.Name, Activity.ActivityGroup?.TinCanActivityId, Activity.ActivityGroup?.TinCanActivityType)
                 .Build();
 
             Lrs.SaveStatement(statement);
@@ -220,7 +220,7 @@ namespace Float.TinCan.ActivityLibrary
                 .SetActivityId(Activity.TinCanActivityId)
                 .SetActivityName(Activity.Name)
                 .SetActivityType(Activity.TinCanActivityType)
-                .SetGroupContext(Activity.ActivityGroup?.Name, Activity.ActivityGroup?.TinCanActivityId?.OriginalString, Activity.ActivityGroup?.TinCanActivityType)
+                .SetGroupContext(Activity.ActivityGroup?.Name, Activity.ActivityGroup?.TinCanActivityId, Activity.ActivityGroup?.TinCanActivityType)
                 .Build();
 
             Lrs.SaveStatement(statement);
@@ -249,7 +249,7 @@ namespace Float.TinCan.ActivityLibrary
                 .SetActivityId(Activity.TinCanActivityId)
                 .SetActivityName(Activity.Name)
                 .SetActivityType(Activity.TinCanActivityType)
-                .SetGroupContext(Activity.ActivityGroup?.Name, Activity.ActivityGroup?.TinCanActivityId?.OriginalString, Activity.ActivityGroup?.TinCanActivityType)
+                .SetGroupContext(Activity.ActivityGroup?.Name, Activity.ActivityGroup?.TinCanActivityId, Activity.ActivityGroup?.TinCanActivityType)
                 .Build();
 
             Lrs.SaveStatement(statement);

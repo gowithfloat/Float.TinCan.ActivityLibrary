@@ -18,10 +18,10 @@ namespace Float.TinCan.ActivityLibrary
     /// </summary>
     public class TinCanActivityRunner : ActivityRunner
     {
-        readonly string contextActivityId;
+        readonly Uri contextActivityId;
         readonly Uri contextActivityType;
         readonly string contextActivityName;
-        readonly string activityId;
+        readonly Uri activityId;
         readonly LRSServer lrsServer;
 
         /// <summary>
@@ -48,10 +48,10 @@ namespace Float.TinCan.ActivityLibrary
 
             lrsServer.StatementReceived += HandleStatementEvent;
             lrsServer.AgentProfileDocumentReceived += HandleAgentProfileRequest;
-            contextActivityId = activity.ActivityGroup?.TinCanActivityId?.OriginalString;
+            contextActivityId = activity.ActivityGroup?.TinCanActivityId;
             contextActivityType = activity.ActivityGroup?.TinCanActivityType;
             contextActivityName = activity.ActivityGroup?.Name;
-            activityId = activity.TinCanActivityId.OriginalString;
+            activityId = activity.TinCanActivityId;
         }
 
         /// <inheritdoc />
@@ -154,12 +154,21 @@ namespace Float.TinCan.ActivityLibrary
             var agent = ExtractParamFromQuery("agent", request);
             state.id = ExtractParamFromQuery("stateId", request);
             state.agent = new Agent(new StringOfJSON(agent));
-            var activity = new Activity
+
+            var id = ExtractParamFromQuery("activityId", request);
+
+            if (Uri.TryCreate(id, UriKind.RelativeOrAbsolute, out var uri))
             {
-                id = ExtractParamFromQuery("activityId", request),
-            };
-            state.activity = activity;
+                var activity = new Activity
+                {
+                    id = uri,
+                };
+
+                state.activity = activity;
+            }
+
             var registrationString = ExtractParamFromQuery("registration", request);
+
             if (!string.IsNullOrEmpty(registrationString))
             {
                 state.registration = new System.Guid(registrationString);
@@ -221,7 +230,7 @@ namespace Float.TinCan.ActivityLibrary
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(contextActivityId))
+            if (contextActivityId != null)
             {
                 var context = statement.context ?? new Context();
                 var contextActivities = context.contextActivities ?? new ContextActivities();

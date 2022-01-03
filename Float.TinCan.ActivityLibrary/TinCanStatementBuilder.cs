@@ -91,7 +91,7 @@ namespace Float.TinCan.ActivityLibrary
                 activity = new Activity();
             }
 
-            activity.id = activityId.OriginalString;
+            activity.id = activityId;
             return this;
         }
 
@@ -151,7 +151,7 @@ namespace Float.TinCan.ActivityLibrary
         /// <param name="localeCode">The local code for the language map.</param>
         /// <param name="activityId">The activityId for the given parent.</param>
         /// <param name="activityType">The activity type.</param>
-        public TinCanStatementBuilder SetParentContext(string name, string localeCode, string activityId, Uri activityType)
+        public TinCanStatementBuilder SetParentContext(string name, string localeCode, Uri activityId, Uri activityType)
         {
             if (context == null)
             {
@@ -188,9 +188,9 @@ namespace Float.TinCan.ActivityLibrary
         /// <param name="name">The group context's name.</param>
         /// <param name="activityId">The activityId for the given group.</param>
         /// <param name="activityType">The activity type.</param>
-        public TinCanStatementBuilder SetGroupContext(string name, string activityId, Uri activityType)
+        public TinCanStatementBuilder SetGroupContext(string name, Uri activityId, Uri activityType)
         {
-            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(activityId) || activityType == null)
+            if (string.IsNullOrWhiteSpace(name) || activityId == null || activityType == null)
             {
                 return this;
             }
@@ -218,7 +218,7 @@ namespace Float.TinCan.ActivityLibrary
         /// <param name="localeCode">Locale code.</param>
         /// <param name="activityId">Activity identifier.</param>
         /// <param name="activityType">Activity type.</param>
-        public TinCanStatementBuilder AddParentCategory(string activityName, string localeCode, string activityId, Uri activityType)
+        public TinCanStatementBuilder AddParentCategory(string activityName, string localeCode, Uri activityId, Uri activityType)
         {
             if (context == null)
             {
@@ -310,7 +310,7 @@ namespace Float.TinCan.ActivityLibrary
             return statement;
         }
 
-        static Activity GetActivity(string contextActivityName, Uri contextActivityType, string contextActivityId)
+        static Activity GetActivity(string contextActivityName, Uri contextActivityType, Uri contextActivityId)
         {
             return new Activity
             {

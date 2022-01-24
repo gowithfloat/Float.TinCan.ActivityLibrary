@@ -88,10 +88,20 @@ namespace Float.TinCan.ActivityLibrary
 
             if (activity == null)
             {
-                activity = new Activity();
+                activity = new Activity
+                {
+                    id = activityId,
+                };
+            }
+            else
+            {
+                activity = new Activity
+                {
+                    id = activityId,
+                    definition = activity.definition,
+                };
             }
 
-            activity.id = activityId;
             return this;
         }
 
@@ -106,11 +116,6 @@ namespace Float.TinCan.ActivityLibrary
             if (activity == null)
             {
                 activity = new Activity();
-            }
-
-            if (activity.definition == null)
-            {
-                activity.definition = new ActivityDefinition();
             }
 
             activity.definition.name = new LanguageMap
@@ -131,11 +136,6 @@ namespace Float.TinCan.ActivityLibrary
             if (activity == null)
             {
                 activity = new Activity();
-            }
-
-            if (activity.definition == null)
-            {
-                activity.definition = new ActivityDefinition();
             }
 
             activity.definition.type = activityType;

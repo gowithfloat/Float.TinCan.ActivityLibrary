@@ -293,6 +293,17 @@ namespace Float.TinCan.ActivityLibrary
             return this;
         }
 
+        /// <summary>
+        /// Sets the session ID.
+        /// </summary>
+        /// <returns>This object, useful for chaining.</returns>
+        /// <param name="guid">The session ID GUID.</param>
+        public TinCanStatementBuilder SetSessionId(Guid guid)
+        {
+            if (context == null)
+            {
+                context = new Context();
+            }
 
             context.registration = guid;
 

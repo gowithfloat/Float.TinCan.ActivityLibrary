@@ -34,6 +34,19 @@ namespace Float.TinCan.ActivityLibrary
         Verb verb;
 
         /// <summary>
+        /// The timestamp for the statement to be built. Optional.
+        /// </summary>
+        DateTime timestamp;
+
+        /// <summary>
+        /// Gets the session ID for the statement to be build. Optional.
+        /// </summary>
+        /// <value>
+        /// The session ID for the statement to be build. Optional.
+        /// </value>
+        public Guid SessionId => context.registration.Value;
+
+        /// <summary>
         /// Sets the name of the agent for the generated statement.
         /// </summary>
         /// <returns>This object, useful for chaining.</returns>
@@ -281,6 +294,34 @@ namespace Float.TinCan.ActivityLibrary
         }
 
         /// <summary>
+        /// Sets the session ID.
+        /// </summary>
+        /// <returns>This object, useful for chaining.</returns>
+        /// <param name="guid">The session ID GUID.</param>
+        public TinCanStatementBuilder SetSessionId(Guid guid)
+        {
+            if (context == null)
+            {
+                context = new Context();
+            }
+
+            context.registration = guid;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the timestamp.
+        /// </summary>
+        /// <param name="timestamp">The timestamp to use.</param>
+        /// <returns>This object, useful for chaining.</returns>
+        public TinCanStatementBuilder SetTimestamp(DateTime timestamp)
+        {
+            this.timestamp = timestamp;
+            return this;
+        }
+
+        /// <summary>
         /// Build a statement using the parameters given so far.
         /// </summary>
         /// <returns>The built statement.</returns>
@@ -303,8 +344,14 @@ namespace Float.TinCan.ActivityLibrary
                 statement.target = activity;
             }
 
+            if (timestamp != null)
+            {
+                statement.timestamp = timestamp;
+            }
+
             statement.context = context;
             statement.verb = verb;
+
             statement.Stamp();
 
             return statement;

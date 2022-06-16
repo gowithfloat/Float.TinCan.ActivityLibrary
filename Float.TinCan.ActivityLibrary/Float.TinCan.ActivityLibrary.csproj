@@ -31,7 +31,7 @@
   <ItemGroup>
     <PackageReference Include="Float.FileDownloader" Version="1.0.0.5" />
     <PackageReference Include="Float.TinCan" Version="1.0.3.29" />
-    <PackageReference Include="Float.TinCan.LocalLRSServer" Version="1.0.0.22" />
+    <PackageReference Include="Float.TinCan.LocalLRSServer" Version="1.0.0.24" />
     <PackageReference Include="Xamarin.Forms" Version="5.0.0.2478+927-sha.9f26f70d6-azdo.6239473" />
     <PackageReference Include="Float.Core" Version="1.0.0.24" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">

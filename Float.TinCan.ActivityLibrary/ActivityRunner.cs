@@ -148,6 +148,52 @@ namespace Float.TinCan.ActivityLibrary
         public abstract Uri AddRunnerParameters(Uri launchUri);
 
         /// <summary>
+        /// Convenience function to send a launched statement to the LRS with the current activity ID and user info.
+        /// </summary>
+        public virtual void SendLaunchedStatement()
+        {
+            var statement = new TinCanStatementBuilder()
+                .SetAgent(Agent)
+                .SetVerb(Verb.Launched)
+                .SetActivityId(Activity.TinCanActivityId)
+                .SetActivityType(Activity.TinCanActivityType)
+                .SetActivityName(Activity.Name)
+                .SetGroupContext(Activity.ActivityGroup?.Name, Activity.ActivityGroup?.TinCanActivityId, Activity.ActivityGroup?.TinCanActivityType)
+                .Build();
+
+            Lrs.SaveStatement(statement);
+        }
+
+        /// <summary>
+        /// Convenience function to send a suspended statement to the LRS with the current activity ID and user info.
+        /// </summary>
+        public virtual void SendSuspendedStatement()
+        {
+            // it's possible that the activity was removed from the database while viewed
+            try
+            {
+                _ = Activity.TinCanActivityId;
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                return;
+            }
+
+            var statement = new TinCanStatementBuilder()
+                .SetAgent(Agent)
+                .SetVerb(Verb.Suspended)
+                .SetActivityId(Activity.TinCanActivityId)
+                .SetActivityName(Activity.Name)
+                .SetActivityType(Activity.TinCanActivityType)
+                .SetGroupContext(Activity.ActivityGroup?.Name, Activity.ActivityGroup?.TinCanActivityId, Activity.ActivityGroup?.TinCanActivityType)
+                .Build();
+
+            Lrs.SaveStatement(statement);
+        }
+
+        /// <summary>
         /// Releases all resource used by the <see cref="ActivityRunner"/> object.
         /// </summary>
         /// <param name="disposing"><c>true</c> if this object is being disposed, <c>false</c> otherwise.</param>
@@ -178,52 +224,6 @@ namespace Float.TinCan.ActivityLibrary
         protected virtual void OnCompleted()
         {
             SendCompletedStatement();
-        }
-
-        /// <summary>
-        /// Convenience function to send a launched statement to the LRS with the current activity ID and user info.
-        /// </summary>
-        protected void SendLaunchedStatement()
-        {
-            var statement = new TinCanStatementBuilder()
-                .SetAgent(Agent)
-                .SetVerb(Verb.Launched)
-                .SetActivityId(Activity.TinCanActivityId)
-                .SetActivityType(Activity.TinCanActivityType)
-                .SetActivityName(Activity.Name)
-                .SetGroupContext(Activity.ActivityGroup?.Name, Activity.ActivityGroup?.TinCanActivityId, Activity.ActivityGroup?.TinCanActivityType)
-                .Build();
-
-            Lrs.SaveStatement(statement);
-        }
-
-        /// <summary>
-        /// Convenience function to send a suspended statement to the LRS with the current activity ID and user info.
-        /// </summary>
-        protected void SendSuspendedStatement()
-        {
-            // it's possible that the activity was removed from the database while viewed
-            try
-            {
-                _ = Activity.TinCanActivityId;
-            }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch
-#pragma warning restore CA1031 // Do not catch general exception types
-            {
-                return;
-            }
-
-            var statement = new TinCanStatementBuilder()
-                .SetAgent(Agent)
-                .SetVerb(Verb.Suspended)
-                .SetActivityId(Activity.TinCanActivityId)
-                .SetActivityName(Activity.Name)
-                .SetActivityType(Activity.TinCanActivityType)
-                .SetGroupContext(Activity.ActivityGroup?.Name, Activity.ActivityGroup?.TinCanActivityId, Activity.ActivityGroup?.TinCanActivityType)
-                .Build();
-
-            Lrs.SaveStatement(statement);
         }
 
         /// <summary>

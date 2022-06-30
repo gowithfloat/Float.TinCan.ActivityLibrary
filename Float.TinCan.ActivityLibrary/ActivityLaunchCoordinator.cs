@@ -59,6 +59,14 @@ namespace Float.TinCan.ActivityLibrary
         public IActivity Activity { get; }
 
         /// <summary>
+        /// Gets the server delegate.
+        /// </summary>
+        /// <value>
+        /// The server delegate.
+        /// </value>
+        public ILRSServerDelegate ServerDelegate => serverDelegate;
+
+        /// <summary>
         /// Gets the available post assessments.
         /// </summary>
         /// <value>The available post assessments.</value>
@@ -68,7 +76,7 @@ namespace Float.TinCan.ActivityLibrary
         /// Gets the runner.
         /// </summary>
         /// <value>The runner.</value>
-        protected ActivityRunner Runner { get; private set; }
+        protected ActivityRunner ActivityRunner { get; private set; }
 
         /// <summary>
         /// Gets or sets the managed html activity runner page.
@@ -125,6 +133,23 @@ namespace Float.TinCan.ActivityLibrary
         }
 
         /// <summary>
+        /// Creates the runner. Note that this method expects to be called on the main thread.
+        /// </summary>
+        /// <returns>The runner.</returns>
+        public virtual ActivityRunner CreateRunner()
+        {
+            // we aggressively null check in this method due to some crashes seen in production
+            var actor = GetCurrentActor();
+
+            if (actor == null)
+            {
+                throw new NullReferenceException("Actor is required to create a runner");
+            }
+
+            return new TinCanActivityRunner(Activity, lrs, actor, serverDelegate, lrsServerInfo);
+        }
+
+        /// <summary>
         /// Creates the download status page.
         /// </summary>
         /// <returns>The download status page.</returns>
@@ -167,8 +192,8 @@ namespace Float.TinCan.ActivityLibrary
             {
                 startLocation = null;
 
-                Runner?.Dispose();
-                Runner = null;
+                ActivityRunner?.Dispose();
+                ActivityRunner = null;
             }
         }
 
@@ -371,28 +396,7 @@ namespace Float.TinCan.ActivityLibrary
             Finish(EventArgs.Empty);
         }
 
-        void CreateRunnerAndHandleErrors()
-        {
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                try
-                {
-                    CreateRunner();
-                }
-#pragma warning disable CA1031 // Do not catch general exception types
-                catch (Exception e)
-#pragma warning restore CA1031 // Do not catch general exception types
-                {
-                    OnActivityLaunchException(e);
-                    Finish(EventArgs.Empty);
-                }
-            });
-        }
-
-        /// <summary>
-        /// Creates the runner. Note that this method expects to be called on the main thread.
-        /// </summary>
-        void CreateRunner()
+        void SetupRunner()
         {
             // because this method is always invoked on the main thread, it's possible this coordinator was finished on a different thread first
             // this can cause all sorts of problems because we create a runner and never dispose it
@@ -401,20 +405,12 @@ namespace Float.TinCan.ActivityLibrary
                 return;
             }
 
-            // we aggressively null check in this method due to some crashes seen in production
-            var actor = GetCurrentActor();
-
-            if (actor == null)
-            {
-                throw new NullReferenceException("Actor is required to create a runner");
-            }
-
-            Runner = new TinCanActivityRunner(Activity, lrs, actor, serverDelegate, lrsServerInfo);
-            Runner.ActivityFinished += HandleActivityFinished;
-            Runner.ActivityProgressed += HandleActivityProgressed;
-            Runner.AssessmentFailed += HandleAssessmentFailed;
-            Runner.AssessmentPassed += HandleAssessmentPassed;
-            Runner.Run();
+            ActivityRunner = CreateRunner();
+            ActivityRunner.ActivityFinished += HandleActivityFinished;
+            ActivityRunner.ActivityProgressed += HandleActivityProgressed;
+            ActivityRunner.AssessmentFailed += HandleAssessmentFailed;
+            ActivityRunner.AssessmentPassed += HandleAssessmentPassed;
+            ActivityRunner.Run();
 
             startLocation = metaDataProvider.GetMetaData(Activity)?.Result?.StartLocation;
 
@@ -436,7 +432,7 @@ namespace Float.TinCan.ActivityLibrary
                 launchUri = new Uri(startLocation);
             }
 
-            launchUri = Runner.AddRunnerParameters(launchUri);
+            launchUri = ActivityRunner.AddRunnerParameters(launchUri);
             SetActivityPageBaseLocation(launchUri);
 
             if (ManagedHtmlActivityRunnerPage == null)
@@ -450,6 +446,24 @@ namespace Float.TinCan.ActivityLibrary
             }
 
             NavigationContext.PushPage(ManagedHtmlActivityRunnerPage);
+        }
+
+        void CreateRunnerAndHandleErrors()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                try
+                {
+                    SetupRunner();
+                }
+#pragma warning disable CA1031 // Do not catch general exception types
+                catch (Exception e)
+#pragma warning restore CA1031 // Do not catch general exception types
+                {
+                    OnActivityLaunchException(e);
+                    Finish(EventArgs.Empty);
+                }
+            });
         }
     }
 }

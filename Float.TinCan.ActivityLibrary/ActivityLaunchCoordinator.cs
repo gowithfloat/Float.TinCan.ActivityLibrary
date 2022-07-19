@@ -154,6 +154,7 @@ namespace Float.TinCan.ActivityLibrary
         /// <inheritdoc />
         protected override void Finish(EventArgs args)
         {
+            if (isHidingDownloadPage)
             {
                 return;
             }

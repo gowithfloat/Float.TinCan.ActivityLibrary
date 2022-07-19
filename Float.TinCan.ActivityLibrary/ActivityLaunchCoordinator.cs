@@ -29,6 +29,7 @@ namespace Float.TinCan.ActivityLibrary
 
         string startLocation;
         DownloadStatus downloadStatus;
+        bool isHidingDownloadPage;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActivityLaunchCoordinator"/> class.
@@ -153,6 +154,10 @@ namespace Float.TinCan.ActivityLibrary
         /// <inheritdoc />
         protected override void Finish(EventArgs args)
         {
+            {
+                return;
+            }
+
             base.Finish(args);
             try
             {
@@ -318,19 +323,22 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <param name="sender">The sending object.</param>
         /// <param name="args">Arguments related to the event.</param>
-        protected virtual void HandleDownloadCompleted(object sender, EventArgs args)
+        protected virtual async void HandleDownloadCompleted(object sender, EventArgs args)
         {
             if (downloadStatus != null && downloadStatus.State != DownloadStatus.DownloadState.Error)
             {
                 downloadStatus.DownloadsCompleted -= HandleDownloadCompleted;
                 downloadStatus.DownloadsCancelled -= HandleDownloadCancelled;
 
-                NavigationContext.DismissPage();
                 startLocation = Activity.MetaData.StartLocation;
+                isHidingDownloadPage = true;
+
+                await NavigationContext.DismissPage();
 
                 CreateRunnerAndHandleErrors();
 
                 downloadStatus = null;
+                isHidingDownloadPage = false;
             }
             else
             {

@@ -9,6 +9,9 @@ using Float.TinCan.ActivityLibrary.Definition;
 using Float.TinCan.LocalLRSServer;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Rg.Plugins.Popup.Extensions;
+using Rg.Plugins.Popup.Pages;
+using Rg.Plugins.Popup.Services;
 using TinCan;
 using Xamarin.Forms;
 
@@ -30,6 +33,7 @@ namespace Float.TinCan.ActivityLibrary
         string startLocation;
         DownloadStatus downloadStatus;
         bool isCreatingRunner;
+        PopupPage downloadPopupPage;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActivityLaunchCoordinator"/> class.
@@ -128,7 +132,19 @@ namespace Float.TinCan.ActivityLibrary
                     downloadStatus.DownloadsCompleted += HandleDownloadCompleted;
                     downloadStatus.DownloadsCancelled += HandleDownloadCancelled;
 
-                    NavigationContext.PresentPage(CreateDownloadStatusPage(downloadStatus));
+                    if (CreateDownloadStatusPopupPage(downloadStatus) is PopupPage popupPage)
+                    {
+                        downloadPopupPage = popupPage;
+                        PopupNavigation.Instance.PushAsync(downloadPopupPage, true);
+                    }
+                    else if (CreateDownloadStatusPage(downloadStatus) is BaseContentPage page)
+                    {
+                        NavigationContext.PresentPage(page);
+                    }
+                    else
+                    {
+                        throw new MissingMethodException("One of CreateDownloadStatusPopupPage or CreateDownloadStatusPage must be implemented.");
+                    }
                 });
             }
         }
@@ -138,7 +154,20 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <returns>The download status page.</returns>
         /// <param name="downloadStatus">Download status.</param>
-        protected abstract BaseContentPage CreateDownloadStatusPage(DownloadStatus downloadStatus);
+        protected virtual BaseContentPage CreateDownloadStatusPage(DownloadStatus downloadStatus)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Creates the download status popup page.
+        /// </summary>
+        /// <returns>The download status popup page.</returns>
+        /// <param name="downloadStatus">Download status.</param>
+        protected virtual PopupPage CreateDownloadStatusPopupPage(DownloadStatus downloadStatus)
+        {
+            return null;
+        }
 
         /// <summary>
         /// Creates the activity complete page.
@@ -342,7 +371,15 @@ namespace Float.TinCan.ActivityLibrary
                 startLocation = Activity.MetaData.StartLocation;
                 isCreatingRunner = true;
 
-                await NavigationContext.DismissPageAsync();
+                if (downloadPopupPage != null)
+                {
+                    await PopupNavigation.Instance.RemovePageAsync(downloadPopupPage, true);
+                    downloadPopupPage = null;
+                }
+                else
+                {
+                    await NavigationContext.PopPageAsync();
+                }
 
                 CreateRunnerAndHandleErrors();
 
@@ -368,7 +405,16 @@ namespace Float.TinCan.ActivityLibrary
                 downloadStatus.DownloadsCancelled -= HandleDownloadCancelled;
             }
 
-            NavigationContext.DismissPage();
+            if (downloadPopupPage != null)
+            {
+                PopupNavigation.Instance.RemovePageAsync(downloadPopupPage, true);
+                downloadPopupPage = null;
+            }
+            else
+            {
+                NavigationContext.PopPageAsync();
+            }
+
             downloadStatus = null;
         }
 

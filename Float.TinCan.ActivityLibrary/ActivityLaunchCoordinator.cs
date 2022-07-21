@@ -29,6 +29,7 @@ namespace Float.TinCan.ActivityLibrary
 
         string startLocation;
         DownloadStatus downloadStatus;
+        bool isCreatingRunner;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActivityLaunchCoordinator"/> class.
@@ -75,6 +76,14 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <value>The managed html activity runner page.</value>
         protected BaseContentPage ManagedHtmlActivityRunnerPage { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this is creating a runner, which may inform the implementing instance it would not want to allow finishing of the coordinator.
+        /// </summary>
+        /// <value>
+        /// A value indicating whether this is creating a runner, which may inform the implementing instance it would not want to allow finishing of the coordinator.
+        /// </value>
+        protected bool IsCreatingRunner => isCreatingRunner;
 
         /// <inheritdoc />
         public override void Start()
@@ -153,6 +162,11 @@ namespace Float.TinCan.ActivityLibrary
         /// <inheritdoc />
         protected override void Finish(EventArgs args)
         {
+            if (isCreatingRunner)
+            {
+                return;
+            }
+
             base.Finish(args);
             try
             {
@@ -318,19 +332,22 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <param name="sender">The sending object.</param>
         /// <param name="args">Arguments related to the event.</param>
-        protected virtual void HandleDownloadCompleted(object sender, EventArgs args)
+        protected virtual async void HandleDownloadCompleted(object sender, EventArgs args)
         {
             if (downloadStatus != null && downloadStatus.State != DownloadStatus.DownloadState.Error)
             {
                 downloadStatus.DownloadsCompleted -= HandleDownloadCompleted;
                 downloadStatus.DownloadsCancelled -= HandleDownloadCancelled;
 
-                NavigationContext.DismissPage();
                 startLocation = Activity.MetaData.StartLocation;
+                isCreatingRunner = true;
+
+                await NavigationContext.DismissPageAsync();
 
                 CreateRunnerAndHandleErrors();
 
                 downloadStatus = null;
+                isCreatingRunner = false;
             }
             else
             {

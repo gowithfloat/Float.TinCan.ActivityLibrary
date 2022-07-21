@@ -108,7 +108,7 @@ namespace Float.TinCan.ActivityLibrary
 
             var fileLocation = Path.Combine(FileStorage.PackagedContentDirectory, startPath);
 
-            if (DownloadChecker.IsActivityDownloaded(fileLocation) && false)
+            if (DownloadChecker.IsActivityDownloaded(fileLocation))
             {
                 CreateRunnerAndHandleErrors();
             }

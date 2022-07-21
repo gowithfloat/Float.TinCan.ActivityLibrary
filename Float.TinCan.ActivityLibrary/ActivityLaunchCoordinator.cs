@@ -29,7 +29,7 @@ namespace Float.TinCan.ActivityLibrary
 
         string startLocation;
         DownloadStatus downloadStatus;
-        bool isHidingDownloadPage;
+        bool isCreatingRunner;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActivityLaunchCoordinator"/> class.
@@ -76,6 +76,14 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <value>The managed html activity runner page.</value>
         protected BaseContentPage ManagedHtmlActivityRunnerPage { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this is creating a runner, which may inform the implementing instance it would not want to allow finishing of the coordinator.
+        /// </summary>
+        /// <value>
+        /// A value indicating whether this is creating a runner, which may inform the implementing instance it would not want to allow finishing of the coordinator.
+        /// </value>
+        protected bool IsCreatingRunner => isCreatingRunner;
 
         /// <inheritdoc />
         public override void Start()
@@ -154,7 +162,7 @@ namespace Float.TinCan.ActivityLibrary
         /// <inheritdoc />
         protected override void Finish(EventArgs args)
         {
-            if (isHidingDownloadPage)
+            if (isCreatingRunner)
             {
                 return;
             }
@@ -332,14 +340,14 @@ namespace Float.TinCan.ActivityLibrary
                 downloadStatus.DownloadsCancelled -= HandleDownloadCancelled;
 
                 startLocation = Activity.MetaData.StartLocation;
-                isHidingDownloadPage = true;
+                isCreatingRunner = true;
 
-                await NavigationContext.DismissPage();
+                await NavigationContext.DismissPageAsync();
 
                 CreateRunnerAndHandleErrors();
 
                 downloadStatus = null;
-                isHidingDownloadPage = false;
+                isCreatingRunner = false;
             }
             else
             {

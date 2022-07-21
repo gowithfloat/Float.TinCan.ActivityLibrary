@@ -108,7 +108,7 @@ namespace Float.TinCan.ActivityLibrary
 
             var fileLocation = Path.Combine(FileStorage.PackagedContentDirectory, startPath);
 
-            if (DownloadChecker.IsActivityDownloaded(fileLocation))
+            if (DownloadChecker.IsActivityDownloaded(fileLocation) && false)
             {
                 CreateRunnerAndHandleErrors();
             }
@@ -132,18 +132,15 @@ namespace Float.TinCan.ActivityLibrary
                     downloadStatus.DownloadsCompleted += HandleDownloadCompleted;
                     downloadStatus.DownloadsCancelled += HandleDownloadCancelled;
 
-                    if (CreateDownloadStatusPopupPage(downloadStatus) is PopupPage popupPage)
+                    var statusPage = CreateDownloadStatusPage(downloadStatus);
+                    if (statusPage is PopupPage popupPage)
                     {
                         downloadPopupPage = popupPage;
                         PopupNavigation.Instance.PushAsync(downloadPopupPage, true);
                     }
-                    else if (CreateDownloadStatusPage(downloadStatus) is BaseContentPage page)
-                    {
-                        NavigationContext.PresentPage(page);
-                    }
                     else
                     {
-                        throw new MissingMethodException("One of CreateDownloadStatusPopupPage or CreateDownloadStatusPage must be implemented.");
+                        NavigationContext.PresentPage(statusPage);
                     }
                 });
             }
@@ -154,20 +151,7 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <returns>The download status page.</returns>
         /// <param name="downloadStatus">Download status.</param>
-        protected virtual BaseContentPage CreateDownloadStatusPage(DownloadStatus downloadStatus)
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// Creates the download status popup page.
-        /// </summary>
-        /// <returns>The download status popup page.</returns>
-        /// <param name="downloadStatus">Download status.</param>
-        protected virtual PopupPage CreateDownloadStatusPopupPage(DownloadStatus downloadStatus)
-        {
-            return null;
-        }
+        protected abstract ContentPage CreateDownloadStatusPage(DownloadStatus downloadStatus);
 
         /// <summary>
         /// Creates the activity complete page.

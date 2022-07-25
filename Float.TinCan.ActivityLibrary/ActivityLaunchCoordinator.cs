@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Float.Core.UI;
 using Float.Core.UX;
 using Float.FileDownloader;
@@ -29,6 +30,7 @@ namespace Float.TinCan.ActivityLibrary
 
         string startLocation;
         DownloadStatus downloadStatus;
+        bool isCreatingRunner;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActivityLaunchCoordinator"/> class.
@@ -76,6 +78,14 @@ namespace Float.TinCan.ActivityLibrary
         /// <value>The managed html activity runner page.</value>
         protected BaseContentPage ManagedHtmlActivityRunnerPage { get; set; }
 
+        /// <summary>
+        /// Gets a value indicating whether this is creating a runner, which may inform the implementing instance it would not want to allow finishing of the coordinator.
+        /// </summary>
+        /// <value>
+        /// A value indicating whether this is creating a runner, which may inform the implementing instance it would not want to allow finishing of the coordinator.
+        /// </value>
+        protected bool IsCreatingRunner => isCreatingRunner;
+
         /// <inheritdoc />
         public override void Start()
         {
@@ -101,7 +111,7 @@ namespace Float.TinCan.ActivityLibrary
             }
             else
             {
-                Device.BeginInvokeOnMainThread(() =>
+                Device.BeginInvokeOnMainThread(async () =>
                 {
                     try
                     {
@@ -118,8 +128,7 @@ namespace Float.TinCan.ActivityLibrary
 
                     downloadStatus.DownloadsCompleted += HandleDownloadCompleted;
                     downloadStatus.DownloadsCancelled += HandleDownloadCancelled;
-
-                    NavigationContext.PresentPage(CreateDownloadStatusPage(downloadStatus));
+                    await ShowDownloadStatus(CreateDownloadStatusPage(downloadStatus));
                 });
             }
         }
@@ -129,7 +138,31 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <returns>The download status page.</returns>
         /// <param name="downloadStatus">Download status.</param>
-        protected abstract BaseContentPage CreateDownloadStatusPage(DownloadStatus downloadStatus);
+        protected abstract ContentPage CreateDownloadStatusPage(DownloadStatus downloadStatus);
+
+        /// <summary>
+        /// Shows the download status page.
+        /// </summary>
+        /// <param name="downloadStatusPage">The download status page.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected virtual async Task ShowDownloadStatus(ContentPage downloadStatusPage)
+        {
+            if (downloadStatusPage is null)
+            {
+                throw new ArgumentNullException(nameof(downloadStatusPage));
+            }
+
+            await NavigationContext.PresentPageAsync(downloadStatusPage);
+        }
+
+        /// <summary>
+        /// Dismisses the download status page.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected virtual async Task DismissDownloadStatus()
+        {
+            await NavigationContext.PopPageAsync();
+        }
 
         /// <summary>
         /// Creates the activity complete page.
@@ -153,6 +186,11 @@ namespace Float.TinCan.ActivityLibrary
         /// <inheritdoc />
         protected override void Finish(EventArgs args)
         {
+            if (isCreatingRunner)
+            {
+                return;
+            }
+
             base.Finish(args);
             try
             {
@@ -205,10 +243,10 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         protected void ShowCompletionScreen()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            Device.BeginInvokeOnMainThread(async () =>
             {
                 var completionPage = CreateActivityCompletePage(AvailablePostAssessments != null && AvailablePostAssessments.Any());
-                NavigationContext.PresentPage(completionPage);
+                await NavigationContext.PresentPageAsync(completionPage);
             });
         }
 
@@ -318,19 +356,21 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <param name="sender">The sending object.</param>
         /// <param name="args">Arguments related to the event.</param>
-        protected virtual void HandleDownloadCompleted(object sender, EventArgs args)
+        protected virtual async void HandleDownloadCompleted(object sender, EventArgs args)
         {
             if (downloadStatus != null && downloadStatus.State != DownloadStatus.DownloadState.Error)
             {
                 downloadStatus.DownloadsCompleted -= HandleDownloadCompleted;
                 downloadStatus.DownloadsCancelled -= HandleDownloadCancelled;
 
-                NavigationContext.DismissPage();
                 startLocation = Activity.MetaData.StartLocation;
+                isCreatingRunner = true;
+                await DismissDownloadStatus();
 
                 CreateRunnerAndHandleErrors();
 
                 downloadStatus = null;
+                isCreatingRunner = false;
             }
             else
             {
@@ -343,7 +383,7 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <param name="sender">The sending object.</param>
         /// <param name="args">Arguments related to the event.</param>
-        protected virtual void HandleDownloadCancelled(object sender, EventArgs args)
+        protected virtual async void HandleDownloadCancelled(object sender, EventArgs args)
         {
             if (downloadStatus != null)
             {
@@ -351,7 +391,8 @@ namespace Float.TinCan.ActivityLibrary
                 downloadStatus.DownloadsCancelled -= HandleDownloadCancelled;
             }
 
-            NavigationContext.DismissPage();
+            await DismissDownloadStatus();
+
             downloadStatus = null;
         }
 
@@ -373,11 +414,11 @@ namespace Float.TinCan.ActivityLibrary
 
         void CreateRunnerAndHandleErrors()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            Device.BeginInvokeOnMainThread(async () =>
             {
                 try
                 {
-                    CreateRunner();
+                    await CreateRunner();
                 }
 #pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception e)
@@ -392,7 +433,7 @@ namespace Float.TinCan.ActivityLibrary
         /// <summary>
         /// Creates the runner. Note that this method expects to be called on the main thread.
         /// </summary>
-        void CreateRunner()
+        async Task CreateRunner()
         {
             // because this method is always invoked on the main thread, it's possible this coordinator was finished on a different thread first
             // this can cause all sorts of problems because we create a runner and never dispose it
@@ -449,7 +490,7 @@ namespace Float.TinCan.ActivityLibrary
                 throw new InvalidOperationException($"No navigation context for activity {Activity.Name}");
             }
 
-            NavigationContext.PushPage(ManagedHtmlActivityRunnerPage);
+            await NavigationContext.PushPageAsync(ManagedHtmlActivityRunnerPage);
         }
     }
 }

@@ -243,10 +243,10 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         protected void ShowCompletionScreen()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            Device.BeginInvokeOnMainThread(async () =>
             {
                 var completionPage = CreateActivityCompletePage(AvailablePostAssessments != null && AvailablePostAssessments.Any());
-                NavigationContext.PresentPage(completionPage);
+                await NavigationContext.PresentPageAsync(completionPage);
             });
         }
 
@@ -414,11 +414,11 @@ namespace Float.TinCan.ActivityLibrary
 
         void CreateRunnerAndHandleErrors()
         {
-            Device.BeginInvokeOnMainThread(() =>
+            Device.BeginInvokeOnMainThread(async () =>
             {
                 try
                 {
-                    CreateRunner();
+                    await CreateRunner();
                 }
 #pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception e)
@@ -433,7 +433,7 @@ namespace Float.TinCan.ActivityLibrary
         /// <summary>
         /// Creates the runner. Note that this method expects to be called on the main thread.
         /// </summary>
-        void CreateRunner()
+        async Task CreateRunner()
         {
             // because this method is always invoked on the main thread, it's possible this coordinator was finished on a different thread first
             // this can cause all sorts of problems because we create a runner and never dispose it
@@ -490,7 +490,7 @@ namespace Float.TinCan.ActivityLibrary
                 throw new InvalidOperationException($"No navigation context for activity {Activity.Name}");
             }
 
-            NavigationContext.PushPage(ManagedHtmlActivityRunnerPage);
+            await NavigationContext.PushPageAsync(ManagedHtmlActivityRunnerPage);
         }
     }
 }

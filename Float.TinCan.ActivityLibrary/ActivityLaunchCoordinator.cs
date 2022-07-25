@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Float.Core.UI;
 using Float.Core.UX;
 using Float.FileDownloader;
@@ -110,7 +111,7 @@ namespace Float.TinCan.ActivityLibrary
             }
             else
             {
-                Device.BeginInvokeOnMainThread(() =>
+                Device.BeginInvokeOnMainThread(async () =>
                 {
                     try
                     {
@@ -127,8 +128,7 @@ namespace Float.TinCan.ActivityLibrary
 
                     downloadStatus.DownloadsCompleted += HandleDownloadCompleted;
                     downloadStatus.DownloadsCancelled += HandleDownloadCancelled;
-
-                    NavigationContext.PresentPage(CreateDownloadStatusPage(downloadStatus));
+                    await ShowDownloadStatus(CreateDownloadStatusPage(downloadStatus));
                 });
             }
         }
@@ -138,7 +138,31 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <returns>The download status page.</returns>
         /// <param name="downloadStatus">Download status.</param>
-        protected abstract BaseContentPage CreateDownloadStatusPage(DownloadStatus downloadStatus);
+        protected abstract ContentPage CreateDownloadStatusPage(DownloadStatus downloadStatus);
+
+        /// <summary>
+        /// Shows the download status page.
+        /// </summary>
+        /// <param name="downloadStatusPage">The download status page.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected virtual async Task ShowDownloadStatus(ContentPage downloadStatusPage)
+        {
+            if (downloadStatusPage is null)
+            {
+                throw new ArgumentNullException(nameof(downloadStatusPage));
+            }
+
+            await NavigationContext.PresentPageAsync(downloadStatusPage);
+        }
+
+        /// <summary>
+        /// Dismisses the download status page.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected virtual async Task DismissDownloadStatus()
+        {
+            await NavigationContext.PopPageAsync();
+        }
 
         /// <summary>
         /// Creates the activity complete page.
@@ -341,8 +365,7 @@ namespace Float.TinCan.ActivityLibrary
 
                 startLocation = Activity.MetaData.StartLocation;
                 isCreatingRunner = true;
-
-                await NavigationContext.DismissPageAsync();
+                await DismissDownloadStatus();
 
                 CreateRunnerAndHandleErrors();
 
@@ -360,7 +383,7 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         /// <param name="sender">The sending object.</param>
         /// <param name="args">Arguments related to the event.</param>
-        protected virtual void HandleDownloadCancelled(object sender, EventArgs args)
+        protected virtual async void HandleDownloadCancelled(object sender, EventArgs args)
         {
             if (downloadStatus != null)
             {
@@ -368,7 +391,8 @@ namespace Float.TinCan.ActivityLibrary
                 downloadStatus.DownloadsCancelled -= HandleDownloadCancelled;
             }
 
-            NavigationContext.DismissPage();
+            await DismissDownloadStatus();
+
             downloadStatus = null;
         }
 

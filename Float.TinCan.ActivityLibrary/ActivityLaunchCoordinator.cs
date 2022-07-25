@@ -111,7 +111,7 @@ namespace Float.TinCan.ActivityLibrary
             }
             else
             {
-                Device.BeginInvokeOnMainThread(() =>
+                Device.BeginInvokeOnMainThread(async () =>
                 {
                     try
                     {
@@ -128,7 +128,7 @@ namespace Float.TinCan.ActivityLibrary
 
                     downloadStatus.DownloadsCompleted += HandleDownloadCompleted;
                     downloadStatus.DownloadsCancelled += HandleDownloadCancelled;
-                    ShowDownloadStatus(CreateDownloadStatusPage(downloadStatus));
+                    await ShowDownloadStatus(CreateDownloadStatusPage(downloadStatus));
                 });
             }
         }

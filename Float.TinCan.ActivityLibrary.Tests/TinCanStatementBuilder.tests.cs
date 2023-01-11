@@ -13,5 +13,16 @@ namespace Float.TinCan.ActivityLibrary.Tests
                 .Build();
             Assert.NotNull(statement);
         }
+
+        [Fact]
+        public void TestDefaultStatementTimestamp()
+        {
+            var statement = new TinCanStatementBuilder()
+                .Build();
+
+            // The default timestamp should be (approximately) now.
+            Assert.InRange(statement.timestamp ?? new System.DateTime(), System.DateTime.UtcNow.AddSeconds(-1), System.DateTime.UtcNow);
+            System.Console.WriteLine(statement.ToJSON());
+        }
     }
 }

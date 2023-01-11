@@ -36,7 +36,7 @@ namespace Float.TinCan.ActivityLibrary
         /// <summary>
         /// The timestamp for the statement to be built. Optional.
         /// </summary>
-        DateTime timestamp;
+        DateTime? timestamp;
 
         /// <summary>
         /// Gets the session ID for the statement to be build. Optional.

@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Float.FileDownloader;
 using Float.TinCan.ActivityLibrary.Definition;
+#if NETSTANDARD
 using Xamarin.Forms;
+#endif
 
 namespace Float.TinCan.ActivityLibrary
 {
@@ -60,7 +62,11 @@ namespace Float.TinCan.ActivityLibrary
                 {
                     tasks?.Exception?.Handle(exc =>
                     {
+#if NETSTANDARD
                         Device.BeginInvokeOnMainThread(() =>
+#else
+                        MainThread.BeginInvokeOnMainThread(() =>
+#endif
                         {
                             DeleteDownloadsForActivity(activity, metaDataProvider);
                             ActiveDownloads.Remove(activity);

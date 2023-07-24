@@ -11,7 +11,9 @@ using Float.TinCan.LocalLRSServer;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TinCan;
+#if NETSTANDARD
 using Xamarin.Forms;
+#endif
 
 namespace Float.TinCan.ActivityLibrary
 {
@@ -76,7 +78,11 @@ namespace Float.TinCan.ActivityLibrary
         /// Gets or sets the managed html activity runner page.
         /// </summary>
         /// <value>The managed html activity runner page.</value>
+#if NETSTANDARD
         protected BaseContentPage ManagedHtmlActivityRunnerPage { get; set; }
+#else
+        protected ContentPage ManagedHtmlActivityRunnerPage { get; set; }
+#endif
 
         /// <summary>
         /// Gets a value indicating whether this is creating a runner, which may inform the implementing instance it would not want to allow finishing of the coordinator.
@@ -111,7 +117,11 @@ namespace Float.TinCan.ActivityLibrary
             }
             else
             {
+#if NETSTANDARD
                 Device.BeginInvokeOnMainThread(async () =>
+#else
+                MainThread.BeginInvokeOnMainThread(async () =>
+#endif
                 {
                     try
                     {
@@ -211,10 +221,17 @@ namespace Float.TinCan.ActivityLibrary
         }
 
         /// <inheritdoc />
+#if NETSTANDARD
         protected override Page PresentInitialPage()
         {
             return ManagedHtmlActivityRunnerPage;
         }
+#else
+        protected override Page PresentInitialPage()
+        {
+            return ManagedHtmlActivityRunnerPage;
+        }
+#endif
 
         /// <summary>
         /// Invoked when the activity has finished.

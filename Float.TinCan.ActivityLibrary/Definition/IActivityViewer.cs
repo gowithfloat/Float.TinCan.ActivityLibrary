@@ -1,4 +1,6 @@
-﻿using Xamarin.Forms;
+﻿#if NETSTANDARD
+using Xamarin.Forms;
+#endif
 
 namespace Float.TinCan.ActivityLibrary.Definition
 {

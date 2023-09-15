@@ -11,7 +11,13 @@ using Float.TinCan.LocalLRSServer;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TinCan;
+#if NETSTANDARD
 using Xamarin.Forms;
+#else
+using Microsoft.Maui;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
+#endif
 
 namespace Float.TinCan.ActivityLibrary
 {
@@ -111,7 +117,7 @@ namespace Float.TinCan.ActivityLibrary
             }
             else
             {
-                Device.BeginInvokeOnMainThread(async () =>
+                Action mainThreadCode = async () =>
                 {
                     try
                     {
@@ -129,7 +135,12 @@ namespace Float.TinCan.ActivityLibrary
                     downloadStatus.DownloadsCompleted += HandleDownloadCompleted;
                     downloadStatus.DownloadsCancelled += HandleDownloadCancelled;
                     await ShowDownloadStatus(CreateDownloadStatusPage(downloadStatus));
-                });
+                };
+#if NETSTANDARD
+                Device.BeginInvokeOnMainThread(mainThreadCode);
+#else
+                MainThread.BeginInvokeOnMainThread(mainThreadCode);
+#endif
             }
         }
 
@@ -243,11 +254,16 @@ namespace Float.TinCan.ActivityLibrary
         /// </summary>
         protected void ShowCompletionScreen()
         {
-            Device.BeginInvokeOnMainThread(async () =>
+            Action mainThreadCode = async () =>
             {
                 var completionPage = CreateActivityCompletePage(AvailablePostAssessments != null && AvailablePostAssessments.Any());
                 await NavigationContext.PresentPageAsync(completionPage);
-            });
+            };
+#if NETSTANDARD
+            Device.BeginInvokeOnMainThread(mainThreadCode);
+#else
+            MainThread.BeginInvokeOnMainThread(mainThreadCode);
+#endif
         }
 
         /// <summary>
@@ -273,10 +289,15 @@ namespace Float.TinCan.ActivityLibrary
         /// <param name="args">Arguments related to the event.</param>
         protected virtual void HandleActivityFinished(object sender, EventArgs args)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            Action mainThreadCode = () =>
             {
                 this.Activity.CompletionDate = DateTimeOffset.Now;
-            });
+            };
+#if NETSTANDARD
+            Device.BeginInvokeOnMainThread(mainThreadCode);
+#else
+            MainThread.BeginInvokeOnMainThread(mainThreadCode);
+#endif
 
             if (args is not StatementEventArgs statementArgs)
             {
@@ -319,10 +340,15 @@ namespace Float.TinCan.ActivityLibrary
                 return;
             }
 
-            Device.BeginInvokeOnMainThread(() =>
+            Action mainThreadCode = () =>
             {
                 this.Activity.PercentComplete = (double)percentComplete / 100;
-            });
+            };
+#if NETSTANDARD
+            Device.BeginInvokeOnMainThread(mainThreadCode);
+#else
+            MainThread.BeginInvokeOnMainThread(mainThreadCode);
+#endif
         }
 
         /// <summary>
@@ -414,7 +440,7 @@ namespace Float.TinCan.ActivityLibrary
 
         void CreateRunnerAndHandleErrors()
         {
-            Device.BeginInvokeOnMainThread(async () =>
+            Action mainThreadCode = async () =>
             {
                 try
                 {
@@ -427,7 +453,12 @@ namespace Float.TinCan.ActivityLibrary
                     OnActivityLaunchException(e);
                     Finish(EventArgs.Empty);
                 }
-            });
+            };
+#if NETSTANDARD
+            Device.BeginInvokeOnMainThread(mainThreadCode);
+#else
+            MainThread.BeginInvokeOnMainThread(mainThreadCode);
+#endif
         }
 
         /// <summary>

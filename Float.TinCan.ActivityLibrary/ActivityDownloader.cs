@@ -1,10 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading.Tasks;
 using Float.FileDownloader;
 using Float.TinCan.ActivityLibrary.Definition;
+#if NETSTANDARD
 using Xamarin.Forms;
+#else
+using Microsoft.Maui;
+using Microsoft.Maui.ApplicationModel;
+#endif
 
 namespace Float.TinCan.ActivityLibrary
 {
@@ -60,11 +66,16 @@ namespace Float.TinCan.ActivityLibrary
                 {
                     tasks?.Exception?.Handle(exc =>
                     {
-                        Device.BeginInvokeOnMainThread(() =>
+                        Action mainThreadCode = () =>
                         {
                             DeleteDownloadsForActivity(activity, metaDataProvider);
                             ActiveDownloads.Remove(activity);
-                        });
+                        };
+#if NETSTANDARD
+                        Device.BeginInvokeOnMainThread(mainThreadCode);
+#else
+                        MainThread.BeginInvokeOnMainThread(mainThreadCode);
+#endif
 
                         return true;
                     });

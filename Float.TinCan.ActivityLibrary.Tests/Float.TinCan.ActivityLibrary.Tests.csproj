@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net7.0;net8.0;</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <LangVersion>9.0</LangVersion>
     <UseMaui>true</UseMaui>
@@ -18,6 +18,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net8'))">
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.7" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Float.TinCan.ActivityLibrary\Float.TinCan.ActivityLibrary.csproj" />

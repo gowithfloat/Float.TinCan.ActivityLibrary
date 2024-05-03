@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Float.TinCan.ActivityLibrary.Definition;
 using Float.TinCan.LocalLRSServer;
@@ -236,6 +237,11 @@ namespace Float.TinCan.ActivityLibrary.Tests
         class StubDelegate : ILRSServerDelegate
         {
             public AgentProfileDocument AgentProfileDocumentForProfileId(string profileId)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void AlterAgentProfileResponse(HttpListenerRequest request, ref HttpListenerResponse response, ref AgentProfileDocument profileDocument)
             {
                 throw new NotImplementedException();
             }

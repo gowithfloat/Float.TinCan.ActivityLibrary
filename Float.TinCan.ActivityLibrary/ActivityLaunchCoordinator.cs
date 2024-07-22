@@ -17,6 +17,8 @@ using Xamarin.Forms;
 using Microsoft.Maui;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
+using CommunityToolkit.Maui.Views;
+using CommunityToolkit.Maui.Core;
 #endif
 
 namespace Float.TinCan.ActivityLibrary
@@ -37,6 +39,9 @@ namespace Float.TinCan.ActivityLibrary
         string startLocation;
         DownloadStatus downloadStatus;
         bool isCreatingRunner;
+#if NET
+        Popup downloadStatusPopup;
+#endif
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActivityLaunchCoordinator"/> class.
@@ -134,7 +139,11 @@ namespace Float.TinCan.ActivityLibrary
 
                     downloadStatus.DownloadsCompleted += HandleDownloadCompleted;
                     downloadStatus.DownloadsCancelled += HandleDownloadCancelled;
+#if NETSTANDARD
                     await ShowDownloadStatus(CreateDownloadStatusPage(downloadStatus));
+#else
+                    await ShowDownloadStatus(CreateDownloadStatusPopup(downloadStatus));
+#endif
                 };
 #if NETSTANDARD
                 Device.BeginInvokeOnMainThread(mainThreadCode);
@@ -144,13 +153,23 @@ namespace Float.TinCan.ActivityLibrary
             }
         }
 
+#if NETSTANDARD
         /// <summary>
         /// Creates the download status page.
         /// </summary>
         /// <returns>The download status page.</returns>
         /// <param name="downloadStatus">Download status.</param>
         protected abstract ContentPage CreateDownloadStatusPage(DownloadStatus downloadStatus);
+#else
+        /// <summary>
+        /// Creates the download status popup.
+        /// </summary>
+        /// <returns>The download status popup.</returns>
+        /// <param name="downloadStatus">Download status.</param>
+        protected abstract Popup CreateDownloadStatusPopup(DownloadStatus downloadStatus);    
+#endif
 
+#if NETSTANDARD
         /// <summary>
         /// Shows the download status page.
         /// </summary>
@@ -165,6 +184,24 @@ namespace Float.TinCan.ActivityLibrary
 
             await NavigationContext.PresentPageAsync(downloadStatusPage);
         }
+#else
+        /// <summary>
+        /// Shows the download status page.
+        /// </summary>
+        /// <param name="downloadStatusPopup">The download status popup.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected virtual async Task ShowDownloadStatus(Popup downloadStatusPopup)
+        {
+            if (downloadStatusPopup is null)
+            {
+                throw new ArgumentNullException(nameof(downloadStatusPopup));
+            }
+
+            this.downloadStatusPopup = downloadStatusPopup;
+
+            Application.Current.MainPage.ShowPopup(this.downloadStatusPopup);
+        }
+#endif
 
         /// <summary>
         /// Dismisses the download status page.
@@ -172,7 +209,12 @@ namespace Float.TinCan.ActivityLibrary
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         protected virtual async Task DismissDownloadStatus()
         {
+#if NETSTANDARD
             await NavigationContext.PopPageAsync();
+#else
+            await this.downloadStatusPopup?.CloseAsync();
+            downloadStatusPopup = null;
+#endif
         }
 
         /// <summary>

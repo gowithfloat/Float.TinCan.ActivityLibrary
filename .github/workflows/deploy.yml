@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
       - name: Retore Workload
@@ -36,7 +36,7 @@ jobs:
           name: Float.TinCan.ActivityLibrary.${{ github.event.release.name }}.nupkg
           path: ./Float.TinCan.ActivityLibrary/bin/Release/Float.TinCan.ActivityLibrary.${{ github.event.release.name }}.nupkg
           if-no-files-found: error
-      # - name: Deploy to NuGet
-      #   env:
-      #     FLOAT_NUGET_TOKEN: ${{ secrets.FLOAT_NUGET_TOKEN }}
-      #   run: dotnet nuget push ./Float.TinCan.ActivityLibrary/bin/Release/Float.TinCan.ActivityLibrary.${{ github.event.release.name }}.nupkg --api-key "${FLOAT_NUGET_TOKEN}" --source https://api.nuget.org/v3/index.json
+      - name: Deploy to NuGet
+        env:
+          FLOAT_NUGET_TOKEN: ${{ secrets.FLOAT_NUGET_TOKEN }}
+        run: dotnet nuget push ./Float.TinCan.ActivityLibrary/bin/Release/Float.TinCan.ActivityLibrary.${{ github.event.release.name }}.nupkg --api-key "${FLOAT_NUGET_TOKEN}" --source https://api.nuget.org/v3/index.json

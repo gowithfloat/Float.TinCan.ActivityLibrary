@@ -15,25 +15,28 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: |
-            3.1.x
-            7.0.x
-            8.0.x
-            9.0.x
+          dotnet-version: 9.0.x
       - name: Retore Workload
         run: dotnet workload restore
       - name: Restore dependencies
         run: dotnet restore
-      - name: Set Assembly Version
-        run: ./build.sh --task=GitVersion --configuration=Release
+      - name: .NET project version updater
+        uses: vers-one/dotnet-project-version-updater@v1.7
+        with:
+          file: |
+            "**/*.csproj", "**/*.nuspec", "**/AssemblyInfo.cs"
+          version: ${{ github.event.release.name }}
       - name: Build Library
         run: dotnet build ./Float.TinCan.ActivityLibrary/Float.TinCan.ActivityLibrary.csproj --configuration Release --no-restore
-      - name: Update Version
-        run: sed -i "s/<Version><\/Version>/<Version>${{ github.event.release.name }}<\/Version>/" ./Float.TinCan.ActivityLibrary/Float.TinCan.ActivityLibrary.csproj
-      - name: Pack and Upload
+      - name: Pack
         run: dotnet pack --configuration Release --no-restore
-
-      - name: Deploy to NuGet
-        env:
-          FLOAT_NUGET_TOKEN: ${{ secrets.FLOAT_NUGET_TOKEN }}
-        run: dotnet nuget push ./Float.TinCan.ActivityLibrary/bin/Release/Float.TinCan.ActivityLibrary.${{ github.event.release.name }}.nupkg --api-key "${FLOAT_NUGET_TOKEN}" --source https://api.nuget.org/v3/index.json
+      - name: Archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Float.TinCan.ActivityLibrary.${{ github.event.release.name }}.nupkg
+          path: ./Float.TinCan.ActivityLibrary/bin/Release/Float.TinCan.ActivityLibrary.${{ github.event.release.name }}.nupkg
+          if-no-files-found: error
+      # - name: Deploy to NuGet
+      #   env:
+      #     FLOAT_NUGET_TOKEN: ${{ secrets.FLOAT_NUGET_TOKEN }}
+      #   run: dotnet nuget push ./Float.TinCan.ActivityLibrary/bin/Release/Float.TinCan.ActivityLibrary.${{ github.event.release.name }}.nupkg --api-key "${FLOAT_NUGET_TOKEN}" --source https://api.nuget.org/v3/index.json

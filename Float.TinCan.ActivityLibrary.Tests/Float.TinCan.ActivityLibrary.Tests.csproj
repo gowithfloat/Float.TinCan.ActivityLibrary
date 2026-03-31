@@ -26,7 +26,7 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="[8.0.20,9)" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFramework.StartsWith('net9'))">
-    <PackageReference Include="Microsoft.Maui.Controls" Version="[9.0.0,10)" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Float.TinCan.ActivityLibrary\Float.TinCan.ActivityLibrary.csproj" />
